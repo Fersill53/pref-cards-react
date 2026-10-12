@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Header from './components/Header.jsx';
 import GlobalNotes from './components/GlobalNotes.jsx';
 import CaseCard from './components/CaseCard.jsx';
@@ -12,7 +12,24 @@ const searchIndex = new Map(cases.map((c) => [c.id, buildSearchText(c)]));
 
 export default function App() {
   const [query, setQuery] = useState('');
-  const [openIds, setOpenIds] = useState(() => new Set());
+  // Only one card is open at a time: its body overlays the cards below it.
+  const [openId, setOpenId] = useState(null);
+
+  useEffect(() => {
+    if (openId === null) return;
+    function handlePointerDown(e) {
+      if (!e.target.closest('.case-card.open')) setOpenId(null);
+    }
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') setOpenId(null);
+    }
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [openId]);
 
   const visibleCases = useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -22,22 +39,14 @@ export default function App() {
 
   function handleSearch(value) {
     setQuery(value);
-    // Cards filtered out by the search collapse, so they reappear closed.
+    // A card filtered out by the search collapses, so it reappears closed.
     const q = value.toLowerCase().trim();
     if (!q) return;
-    setOpenIds((prev) => {
-      const next = new Set([...prev].filter((id) => searchIndex.get(id).includes(q)));
-      return next.size === prev.size ? prev : next;
-    });
+    setOpenId((prev) => (prev !== null && searchIndex.get(prev).includes(q) ? prev : null));
   }
 
   function toggle(id) {
-    setOpenIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+    setOpenId((prev) => (prev === id ? null : id));
   }
 
   return (
@@ -58,7 +67,7 @@ export default function App() {
             <CaseCard
               key={c.id}
               data={c}
-              open={openIds.has(c.id)}
+              open={openId === c.id}
               onToggle={() => toggle(c.id)}
             />
           ))}
