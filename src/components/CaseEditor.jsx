@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Modal from './Modal.jsx';
+import TableEditor from './TableEditor.jsx';
 import { newColumn, newPill, newSection } from '../data/factories.js';
 import { moveItem } from '../utils/list.js';
 
@@ -8,13 +9,18 @@ const SECTION_TYPES = [
   ['note', 'Note'],
   ['warn', 'Warning (amber)'],
   ['danger', 'Alert (red)'],
+  ['info', 'Info (teal)'],
   ['twoCol', 'Two columns'],
+  ['table', 'Table'],
 ];
+
+const TEXT_TYPES = ['note', 'warn', 'danger', 'info'];
 
 const PILL_COLORS = [
   ['', 'Grey'],
-  ['accent', 'Blue'],
+  ['accent', 'Accent'],
   ['green', 'Green'],
+  ['teal', 'Teal'],
   ['warn', 'Amber'],
   ['danger', 'Red'],
 ];
@@ -23,6 +29,8 @@ const TAG_COLORS = [
   ['spine', 'Blue'],
   ['cervical', 'Green'],
   ['other', 'Amber'],
+  ['purple', 'Purple'],
+  ['teal', 'Teal'],
 ];
 
 function PillsEditor({ pills, onChange }) {
@@ -142,6 +150,13 @@ export default function CaseEditor({ initial, isNew, onSave, onDelete, onClose }
   const patchSection = (id, fields) =>
     setSections((list) => list.map((s) => (s.id === id ? { ...s, ...fields } : s)));
 
+  function changeType(section, type) {
+    // A table needs at least one column to be editable.
+    const headers =
+      type === 'table' && section.headers.length === 0 ? ['Item', 'Status'] : section.headers;
+    patchSection(section.id, { type, headers });
+  }
+
   function handleSave() {
     onSave({
       ...draft,
@@ -151,6 +166,7 @@ export default function CaseEditor({ initial, isNew, onSave, onDelete, onClose }
         ...s,
         pills: s.pills.filter((p) => p.text.trim() !== ''),
         columns: s.columns.filter((c) => c.label.trim() !== '' || c.content.trim() !== ''),
+        rows: s.rows.filter((r) => r.cells.some((cell) => cell.trim() !== '')),
       })),
     });
   }
@@ -217,6 +233,15 @@ export default function CaseEditor({ initial, isNew, onSave, onDelete, onClose }
         </label>
       </div>
 
+      <label className="check draft-check">
+        <input
+          type="checkbox"
+          checked={draft.draft}
+          onChange={(e) => set({ draft: e.target.checked })}
+        />
+        Mark as draft (shows a DRAFT badge on the card)
+      </label>
+
       <label className="field">
         <span>Intro line (optional)</span>
         <input
@@ -256,7 +281,7 @@ export default function CaseEditor({ initial, isNew, onSave, onDelete, onClose }
             <select
               aria-label="Section type"
               value={section.type}
-              onChange={(e) => patchSection(section.id, { type: e.target.value })}
+              onChange={(e) => changeType(section, e.target.value)}
             >
               {SECTION_TYPES.map(([value, label]) => (
                 <option key={value} value={value}>
@@ -304,7 +329,14 @@ export default function CaseEditor({ initial, isNew, onSave, onDelete, onClose }
               onChange={(columns) => patchSection(section.id, { columns })}
             />
           )}
-          {section.type !== 'pills' && section.type !== 'twoCol' && (
+          {section.type === 'table' && (
+            <TableEditor
+              headers={section.headers}
+              rows={section.rows}
+              onChange={(fields) => patchSection(section.id, fields)}
+            />
+          )}
+          {TEXT_TYPES.includes(section.type) && (
             <textarea
               rows={3}
               placeholder="Text"

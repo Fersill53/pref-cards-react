@@ -24,8 +24,13 @@ export default function App() {
   useEffect(() => saveState(state), [state]);
 
   useEffect(() => {
-    document.title = `${doctor.name} — Surgical Preference Cards`;
-  }, [doctor.name]);
+    document.title = `${doctor.name} — ${doctor.subtitle}`;
+  }, [doctor.name, doctor.subtitle]);
+
+  // Each doctor has their own accent colour (see :root[data-accent] in index.css).
+  useEffect(() => {
+    document.documentElement.dataset.accent = doctor.accent;
+  }, [doctor.accent]);
 
   useEffect(() => {
     if (openId === null || editing !== null) return;
@@ -101,17 +106,15 @@ export default function App() {
     setEditing(null);
   }
 
-  function saveDoctor({ name, copyFromId }) {
+  function saveDoctor({ copyFromId, ...fields }) {
     if (editing.isNew) {
       const source = doctors.find((d) => d.id === copyFromId);
-      const created = source
-        ? { ...cloneWithNewIds(source), name }
-        : newDoctor({ name });
-      setState((s) => ({ doctors: [...s.doctors, created], currentId: created.id }));
+      const created = source ? { ...cloneWithNewIds(source), ...fields } : newDoctor(fields);
+      setState((s) => ({ ...s, doctors: [...s.doctors, created], currentId: created.id }));
       setQuery('');
       setOpenId(null);
     } else {
-      updateDoctor((d) => ({ ...d, name }));
+      updateDoctor((d) => ({ ...d, ...fields }));
     }
     setEditing(null);
   }
@@ -121,12 +124,17 @@ export default function App() {
     if (!window.confirm(message)) return;
     setState((s) => {
       const remaining = s.doctors.filter((d) => d.id !== doctor.id);
-      return { doctors: remaining, currentId: remaining[0].id };
+      return { ...s, doctors: remaining, currentId: remaining[0].id };
     });
     setQuery('');
     setOpenId(null);
     setEditing(null);
   }
+
+  // The OPEN / HOLD key only matters for doctors whose tables use those tints.
+  const showLegend = doctor.cases.some((c) =>
+    c.sections.some((s) => s.type === 'table' && s.rows.some((r) => r.tone))
+  );
 
   const editingCase =
     editing?.type === 'case'
@@ -138,6 +146,7 @@ export default function App() {
       <Header
         doctors={doctors}
         currentId={doctor.id}
+        subtitle={doctor.subtitle}
         caseCount={doctor.cases.length}
         query={query}
         onQueryChange={handleSearch}
@@ -151,6 +160,18 @@ export default function App() {
         notes={doctor.globalNotes}
         onEdit={() => setEditing({ type: 'notes' })}
       />
+      {showLegend && (
+        <div className="legend">
+          <div className="legend-item">
+            <span className="legend-dot open" />
+            OPEN — routine setup
+          </div>
+          <div className="legend-item">
+            <span className="legend-dot hold" />
+            HOLD — in room, unopened; open on surgeon request
+          </div>
+        </div>
+      )}
       <main>
         <div className="cases-grid">
           {visibleCases.length === 0 && q && (

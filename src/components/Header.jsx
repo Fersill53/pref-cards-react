@@ -1,6 +1,7 @@
 export default function Header({
   doctors,
   currentId,
+  subtitle,
   caseCount,
   query,
   onQueryChange,
@@ -32,7 +33,7 @@ export default function Header({
           </button>
         </div>
         <p>
-          Surgical Preference Cards · {caseCount} {caseCount === 1 ? 'case' : 'cases'}
+          {subtitle} · {caseCount} {caseCount === 1 ? 'case' : 'cases'}
         </p>
       </div>
       <div className="search-wrap">

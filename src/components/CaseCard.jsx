@@ -4,7 +4,48 @@ const BLOCK_CLASS = {
   note: 'note-block',
   warn: 'warn-block',
   danger: 'danger-block',
+  info: 'info-block',
 };
+
+const STATUS = /^(OPEN|HOLD)(?=$|\s)/;
+
+// A cell starting with OPEN or HOLD shows that word as a status badge.
+function Cell({ text }) {
+  const match = STATUS.exec(text ?? '');
+  if (!match) return <RichText text={text} />;
+  const status = match[1];
+  return (
+    <>
+      <span className={`status-${status.toLowerCase()}`}>{status}</span>
+      <RichText text={text.slice(status.length)} />
+    </>
+  );
+}
+
+function PrefTable({ headers, rows }) {
+  return (
+    <table className="pref-table">
+      <thead>
+        <tr>
+          {headers.map((header, i) => (
+            <th key={i}>{header}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <tr key={row.id} className={row.tone ? `${row.tone}-row` : undefined}>
+            {headers.map((_, i) => (
+              <td key={i}>
+                <Cell text={row.cells[i]} />
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
 
 function SectionContent({ section }) {
   switch (section.type) {
@@ -31,6 +72,8 @@ function SectionContent({ section }) {
           ))}
         </div>
       );
+    case 'table':
+      return <PrefTable headers={section.headers} rows={section.rows} />;
     default:
       return (
         <div className={BLOCK_CLASS[section.type]}>
@@ -41,7 +84,7 @@ function SectionContent({ section }) {
 }
 
 export default function CaseCard({ data, open, onToggle, onEdit }) {
-  const { name, tag, intro, sections } = data;
+  const { name, tag, draft, intro, sections } = data;
 
   function handleKeyDown(e) {
     if (e.target !== e.currentTarget) return;
@@ -64,6 +107,7 @@ export default function CaseCard({ data, open, onToggle, onEdit }) {
         <div className="case-title-row">
           {tag.label && <span className={`case-tag tag-${tag.kind}`}>{tag.label}</span>}
           <span className="case-name">{name}</span>
+          {draft && <span className="draft-badge">DRAFT</span>}
         </div>
         <div className="case-actions">
           <button

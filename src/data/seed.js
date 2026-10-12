@@ -1,4 +1,15 @@
-import { newCase, newColumn, newDoctor, newNote, newPill, newSection } from './factories.js';
+import { newCase, newDoctor, newNote } from './factories.js';
+import {
+  accent,
+  danger,
+  dangerPill,
+  green,
+  note,
+  pills,
+  twoCol,
+  warn,
+  warnPill,
+} from './seedHelpers.js';
 
 // Starting data, used the first time the app runs in a browser. After that the
 // saved copy in the browser is the source of truth, so edits here won't show up.
@@ -9,28 +20,6 @@ const TAGS = {
   other: { label: 'Other', kind: 'other' },
   urgent: { label: 'Urgent', kind: 'other' },
 };
-
-const colored = (variant) => (text) => ({ text, variant });
-const accent = colored('accent');
-const warnPill = colored('warn');
-const dangerPill = colored('danger');
-const green = colored('green');
-
-const note = (label, content) => newSection({ label, type: 'note', content });
-const warn = (label, content) => newSection({ label, type: 'warn', content });
-const danger = (label, content) => newSection({ label, type: 'danger', content });
-const pills = (label, items) =>
-  newSection({
-    label,
-    type: 'pills',
-    pills: items.map((p) => (typeof p === 'string' ? newPill(p) : newPill(p.text, p.variant))),
-  });
-const twoCol = (label, columns) =>
-  newSection({
-    label,
-    type: 'twoCol',
-    columns: columns.map(([colLabel, content]) => newColumn(colLabel, content)),
-  });
 
 const globalNotes = () => [
   newNote({

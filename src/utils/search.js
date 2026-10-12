@@ -4,6 +4,8 @@ function sectionText(section) {
       return [section.label, ...section.pills.map((p) => p.text)];
     case 'twoCol':
       return [section.label, ...section.columns.flatMap((col) => [col.label, col.content])];
+    case 'table':
+      return [section.label, ...section.headers, ...section.rows.flatMap((row) => row.cells)];
     default:
       return [section.label, section.content];
   }
