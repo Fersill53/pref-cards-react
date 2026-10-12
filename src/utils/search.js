@@ -1,35 +1,18 @@
-// Flattens a React node (string, element, array) into its plain text.
-export function nodeText(node) {
-  if (node == null || typeof node === 'boolean') return '';
-  if (typeof node === 'string' || typeof node === 'number') return String(node);
-  if (Array.isArray(node)) return node.map(nodeText).join(' ');
-  if (node.props) return nodeText(node.props.children);
-  return '';
-}
-
 function sectionText(section) {
-  const parts = [section.label ?? ''];
   switch (section.type) {
     case 'pills':
-      parts.push(...section.items.map((p) => (typeof p === 'string' ? p : p.text)));
-      break;
+      return [section.label, ...section.pills.map((p) => p.text)];
     case 'twoCol':
-      section.items.forEach((item) => parts.push(item.label, nodeText(item.content)));
-      break;
+      return [section.label, ...section.columns.flatMap((col) => [col.label, col.content])];
     default:
-      parts.push(nodeText(section.content));
+      return [section.label, section.content];
   }
-  return parts.join(' ');
 }
 
+// Lower-cased text of everything on a card, plus its hidden keywords.
 export function buildSearchText(c) {
-  return [
-    c.keywords,
-    c.name,
-    c.tag.label,
-    nodeText(c.intro),
-    ...c.sections.map(sectionText),
-  ]
+  return [c.keywords, c.name, c.tag.label, c.intro, ...c.sections.flatMap(sectionText)]
     .join(' ')
+    .replace(/\*/g, '')
     .toLowerCase();
 }

@@ -1,9 +1,39 @@
-export default function Header({ surgeon, caseCount, query, onQueryChange }) {
+export default function Header({
+  doctors,
+  currentId,
+  caseCount,
+  query,
+  onQueryChange,
+  onSelectDoctor,
+  onEditDoctor,
+  onAddDoctor,
+}) {
   return (
     <header>
       <div className="header-left">
-        <h1>{surgeon}</h1>
-        <p>Surgical Preference Cards · {caseCount} cases</p>
+        <div className="doctor-row">
+          <select
+            className="doctor-select"
+            aria-label="Doctor"
+            value={currentId}
+            onChange={(e) => onSelectDoctor(e.target.value)}
+          >
+            {doctors.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+          <button type="button" className="btn btn-sm" onClick={onEditDoctor}>
+            Edit
+          </button>
+          <button type="button" className="btn btn-sm" onClick={onAddDoctor}>
+            + Doctor
+          </button>
+        </div>
+        <p>
+          Surgical Preference Cards · {caseCount} {caseCount === 1 ? 'case' : 'cases'}
+        </p>
       </div>
       <div className="search-wrap">
         <span className="search-icon">⌕</span>
