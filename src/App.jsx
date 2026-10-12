@@ -1,226 +1,69 @@
-import { useEffect, useMemo, useState } from 'react';
-import Header from './components/Header.jsx';
-import GlobalNotes from './components/GlobalNotes.jsx';
-import CaseCard from './components/CaseCard.jsx';
-import CaseEditor from './components/CaseEditor.jsx';
-import NotesEditor from './components/NotesEditor.jsx';
+import { useEffect, useState } from 'react';
+import Home from './components/Home.jsx';
+import DoctorPage from './components/DoctorPage.jsx';
 import DoctorEditor from './components/DoctorEditor.jsx';
-import { cloneWithNewIds, newCase, newDoctor } from './data/factories.js';
-import { buildSearchText } from './utils/search.js';
+import { DEFAULT_SUBTITLE, cloneWithNewIds, newDoctor } from './data/factories.js';
+import { doctorPath, homePath, navigate, useRoute } from './utils/route.js';
 import { loadState, saveState } from './utils/storage.js';
 
 export default function App() {
   const [state, setState] = useState(loadState);
-  const [query, setQuery] = useState('');
-  // Only one card is open at a time: its body overlays the cards below it.
-  const [openId, setOpenId] = useState(null);
-  // Which editor is showing: { type: 'case', caseId } | { type: 'notes' } |
-  // { type: 'doctor', isNew } | null. caseId is null when adding a case.
-  const [editing, setEditing] = useState(null);
+  const [addingDoctor, setAddingDoctor] = useState(false);
+  const route = useRoute();
 
   const { doctors } = state;
-  const doctor = doctors.find((d) => d.id === state.currentId) ?? doctors[0];
+  // A link to a doctor that no longer exists falls back to the home page.
+  const doctor =
+    route.view === 'doctor' ? doctors.find((d) => d.id === route.doctorId) ?? null : null;
 
   useEffect(() => saveState(state), [state]);
 
   useEffect(() => {
-    document.title = `${doctor.name} — ${doctor.subtitle}`;
-  }, [doctor.name, doctor.subtitle]);
+    document.title = doctor ? `${doctor.name} — ${doctor.subtitle}` : DEFAULT_SUBTITLE;
+    // Each doctor has their own accent colour (see [data-accent] in index.css).
+    document.documentElement.dataset.accent = doctor?.accent ?? 'blue';
+  }, [doctor?.name, doctor?.subtitle, doctor?.accent]);
 
-  // Each doctor has their own accent colour (see :root[data-accent] in index.css).
-  useEffect(() => {
-    document.documentElement.dataset.accent = doctor.accent;
-  }, [doctor.accent]);
-
-  useEffect(() => {
-    if (openId === null || editing !== null) return;
-    function handlePointerDown(e) {
-      if (!e.target.closest('.case-card.open')) setOpenId(null);
-    }
-    function handleKeyDown(e) {
-      if (e.key === 'Escape') setOpenId(null);
-    }
-    document.addEventListener('pointerdown', handlePointerDown);
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('pointerdown', handlePointerDown);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [openId, editing]);
-
-  // Searchable text per case: keywords plus everything rendered on the card.
-  const searchIndex = useMemo(
-    () => new Map(doctor.cases.map((c) => [c.id, buildSearchText(c)])),
-    [doctor.cases]
-  );
-
-  const q = query.toLowerCase().trim();
-  const visibleCases = q
-    ? doctor.cases.filter((c) => searchIndex.get(c.id).includes(q))
-    : doctor.cases;
-
-  function handleSearch(value) {
-    setQuery(value);
-    // A card filtered out by the search collapses, so it reappears closed.
-    const next = value.toLowerCase().trim();
-    if (!next) return;
-    setOpenId((prev) => (prev !== null && searchIndex.get(prev)?.includes(next) ? prev : null));
+  function updateDoctor(id, fn) {
+    setState((s) => ({ ...s, doctors: s.doctors.map((d) => (d.id === id ? fn(d) : d)) }));
   }
 
-  function toggle(id) {
-    setOpenId((prev) => (prev === id ? null : id));
+  function addDoctor({ copyFromId, ...fields }) {
+    const source = doctors.find((d) => d.id === copyFromId);
+    const created = source ? { ...cloneWithNewIds(source), ...fields } : newDoctor(fields);
+    setState((s) => ({ ...s, doctors: [...s.doctors, created] }));
+    setAddingDoctor(false);
+    navigate(doctorPath(created.id));
   }
 
-  function updateDoctor(fn) {
-    setState((s) => ({
-      ...s,
-      doctors: s.doctors.map((d) => (d.id === doctor.id ? fn(d) : d)),
-    }));
+  function deleteDoctor(id) {
+    setState((s) => ({ ...s, doctors: s.doctors.filter((d) => d.id !== id) }));
+    navigate(homePath);
   }
-
-  function selectDoctor(id) {
-    setState((s) => ({ ...s, currentId: id }));
-    setQuery('');
-    setOpenId(null);
-  }
-
-  function saveCase(saved) {
-    updateDoctor((d) => ({
-      ...d,
-      cases: d.cases.some((c) => c.id === saved.id)
-        ? d.cases.map((c) => (c.id === saved.id ? saved : c))
-        : [...d.cases, saved],
-    }));
-    setEditing(null);
-  }
-
-  function deleteCase(target) {
-    if (!window.confirm(`Delete "${target.name}" from ${doctor.name}'s cards?`)) return;
-    updateDoctor((d) => ({ ...d, cases: d.cases.filter((c) => c.id !== target.id) }));
-    setOpenId(null);
-    setEditing(null);
-  }
-
-  function saveNotes(globalNotes) {
-    updateDoctor((d) => ({ ...d, globalNotes }));
-    setEditing(null);
-  }
-
-  function saveDoctor({ copyFromId, ...fields }) {
-    if (editing.isNew) {
-      const source = doctors.find((d) => d.id === copyFromId);
-      const created = source ? { ...cloneWithNewIds(source), ...fields } : newDoctor(fields);
-      setState((s) => ({ ...s, doctors: [...s.doctors, created], currentId: created.id }));
-      setQuery('');
-      setOpenId(null);
-    } else {
-      updateDoctor((d) => ({ ...d, ...fields }));
-    }
-    setEditing(null);
-  }
-
-  function deleteDoctor() {
-    const message = `Delete ${doctor.name} and all ${doctor.cases.length} of their cards? This can't be undone.`;
-    if (!window.confirm(message)) return;
-    setState((s) => {
-      const remaining = s.doctors.filter((d) => d.id !== doctor.id);
-      return { ...s, doctors: remaining, currentId: remaining[0].id };
-    });
-    setQuery('');
-    setOpenId(null);
-    setEditing(null);
-  }
-
-  // The OPEN / HOLD key only matters for doctors whose tables use those tints.
-  const showLegend = doctor.cases.some((c) =>
-    c.sections.some((s) => s.type === 'table' && s.rows.some((r) => r.tone))
-  );
-
-  const editingCase =
-    editing?.type === 'case'
-      ? doctor.cases.find((c) => c.id === editing.caseId) ?? null
-      : null;
 
   return (
     <>
-      <Header
-        doctors={doctors}
-        currentId={doctor.id}
-        subtitle={doctor.subtitle}
-        caseCount={doctor.cases.length}
-        query={query}
-        onQueryChange={handleSearch}
-        onSelectDoctor={selectDoctor}
-        onEditDoctor={() => setEditing({ type: 'doctor', isNew: false })}
-        onAddDoctor={() => setEditing({ type: 'doctor', isNew: true })}
-      />
-      {/* key resets the open/closed panel when switching doctors */}
-      <GlobalNotes
-        key={doctor.id}
-        notes={doctor.globalNotes}
-        onEdit={() => setEditing({ type: 'notes' })}
-      />
-      {showLegend && (
-        <div className="legend">
-          <div className="legend-item">
-            <span className="legend-dot open" />
-            OPEN — routine setup
-          </div>
-          <div className="legend-item">
-            <span className="legend-dot hold" />
-            HOLD — in room, unopened; open on surgeon request
-          </div>
-        </div>
-      )}
-      <main>
-        <div className="cases-grid">
-          {visibleCases.length === 0 && q && (
-            <p className="no-results">No cases match your search.</p>
-          )}
-          {visibleCases.map((c) => (
-            <CaseCard
-              key={c.id}
-              data={c}
-              open={openId === c.id}
-              onToggle={() => toggle(c.id)}
-              onEdit={() => setEditing({ type: 'case', caseId: c.id })}
-            />
-          ))}
-          {!q && (
-            <button
-              type="button"
-              className="add-card"
-              onClick={() => setEditing({ type: 'case', caseId: null })}
-            >
-              + Add case
-            </button>
-          )}
-        </div>
-      </main>
-
-      {editing?.type === 'case' && (
-        <CaseEditor
-          initial={editingCase ?? newCase()}
-          isNew={editingCase === null}
-          onSave={saveCase}
-          onDelete={() => deleteCase(editingCase)}
-          onClose={() => setEditing(null)}
-        />
-      )}
-      {editing?.type === 'notes' && (
-        <NotesEditor
-          notes={doctor.globalNotes}
-          onSave={saveNotes}
-          onClose={() => setEditing(null)}
-        />
-      )}
-      {editing?.type === 'doctor' && (
-        <DoctorEditor
-          doctor={editing.isNew ? null : doctor}
+      {doctor ? (
+        // key gives each doctor (and each "open this card" link) a fresh page
+        <DoctorPage
+          key={`${doctor.id}/${route.caseId ?? ''}`}
+          doctor={doctor}
           doctors={doctors}
-          onSave={saveDoctor}
-          onDelete={deleteDoctor}
-          onClose={() => setEditing(null)}
+          initialOpenId={route.caseId}
+          onUpdate={(fn) => updateDoctor(doctor.id, fn)}
+          onDelete={() => deleteDoctor(doctor.id)}
+          onAddDoctor={() => setAddingDoctor(true)}
+        />
+      ) : (
+        <Home doctors={doctors} onAddDoctor={() => setAddingDoctor(true)} />
+      )}
+
+      {addingDoctor && (
+        <DoctorEditor
+          doctor={null}
+          doctors={doctors}
+          onSave={addDoctor}
+          onClose={() => setAddingDoctor(false)}
         />
       )}
     </>

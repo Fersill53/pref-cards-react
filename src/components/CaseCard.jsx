@@ -95,7 +95,7 @@ export default function CaseCard({ data, open, onToggle, onEdit }) {
   }
 
   return (
-    <div className={open ? 'case-card open' : 'case-card'}>
+    <div id={`case-${data.id}`} className={open ? 'case-card open' : 'case-card'}>
       <div
         className="case-header"
         role="button"
@@ -105,9 +105,13 @@ export default function CaseCard({ data, open, onToggle, onEdit }) {
         onKeyDown={handleKeyDown}
       >
         <div className="case-title-row">
-          {tag.label && <span className={`case-tag tag-${tag.kind}`}>{tag.label}</span>}
+          {(tag.label || draft) && (
+            <div className="case-badges">
+              {tag.label && <span className={`case-tag tag-${tag.kind}`}>{tag.label}</span>}
+              {draft && <span className="draft-badge">DRAFT</span>}
+            </div>
+          )}
           <span className="case-name">{name}</span>
-          {draft && <span className="draft-badge">DRAFT</span>}
         </div>
         <div className="case-actions">
           <button

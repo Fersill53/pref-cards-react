@@ -1,3 +1,5 @@
+import { homePath } from '../utils/route.js';
+
 export default function Header({
   doctors,
   currentId,
@@ -13,6 +15,9 @@ export default function Header({
     <header>
       <div className="header-left">
         <div className="doctor-row">
+          <a className="btn btn-sm home-link" href={homePath} aria-label="Home" title="Home">
+            ← Home
+          </a>
           <select
             className="doctor-select"
             aria-label="Doctor"
