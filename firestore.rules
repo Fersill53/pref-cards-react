@@ -1,0 +1,15 @@
+rules_version = '2';
+
+// OPEN ACCESS: anyone who has the site's address can read, change and delete
+// every card. There is no sign-in. To lock this down later, add Firebase
+// Authentication and replace "if true" with a check on request.auth.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /doctors/{doctorId} {
+      allow read, write: if true;
+    }
+    match /meta/{docId} {
+      allow read, write: if true;
+    }
+  }
+}

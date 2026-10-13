@@ -953,3 +953,25 @@ select option {
   main { padding: 16px; }
   .two-col { grid-template-columns: 1fr; }
 }
+
+/* LOADING / SYNC STATUS */
+.app-status {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.app-status strong { color: var(--danger); font-weight: 600; }
+.sync-error {
+  background: var(--danger-dim);
+  border-bottom: 1px solid rgba(224,92,92,0.3);
+  color: var(--danger);
+  font-size: 12px;
+  text-align: center;
+  padding: 8px 16px;
+}

@@ -3,20 +3,17 @@ import Home from './components/Home.jsx';
 import DoctorPage from './components/DoctorPage.jsx';
 import DoctorEditor from './components/DoctorEditor.jsx';
 import { DEFAULT_SUBTITLE, cloneWithNewIds, newDoctor } from './data/factories.js';
+import { useDoctors } from './data/useDoctors.js';
 import { doctorPath, homePath, navigate, useRoute } from './utils/route.js';
-import { loadState, saveState } from './utils/storage.js';
 
 export default function App() {
-  const [state, setState] = useState(loadState);
+  const { doctors, ready, error, saveDoctor, removeDoctor } = useDoctors();
   const [addingDoctor, setAddingDoctor] = useState(false);
   const route = useRoute();
 
-  const { doctors } = state;
   // A link to a doctor that no longer exists falls back to the home page.
   const doctor =
     route.view === 'doctor' ? doctors.find((d) => d.id === route.doctorId) ?? null : null;
-
-  useEffect(() => saveState(state), [state]);
 
   useEffect(() => {
     document.title = doctor ? `${doctor.name} — ${doctor.subtitle}` : DEFAULT_SUBTITLE;
@@ -24,25 +21,47 @@ export default function App() {
     document.documentElement.dataset.accent = doctor?.accent ?? 'blue';
   }, [doctor?.name, doctor?.subtitle, doctor?.accent]);
 
-  function updateDoctor(id, fn) {
-    setState((s) => ({ ...s, doctors: s.doctors.map((d) => (d.id === id ? fn(d) : d)) }));
-  }
-
   function addDoctor({ copyFromId, ...fields }) {
     const source = doctors.find((d) => d.id === copyFromId);
-    const created = source ? { ...cloneWithNewIds(source), ...fields } : newDoctor(fields);
-    setState((s) => ({ ...s, doctors: [...s.doctors, created] }));
+    // order puts the newest doctor last
+    const created = {
+      ...(source ? cloneWithNewIds(source) : newDoctor()),
+      ...fields,
+      order: Date.now(),
+    };
+    saveDoctor(created);
     setAddingDoctor(false);
     navigate(doctorPath(created.id));
   }
 
   function deleteDoctor(id) {
-    setState((s) => ({ ...s, doctors: s.doctors.filter((d) => d.id !== id) }));
+    removeDoctor(id);
     navigate(homePath);
+  }
+
+  if (!ready) {
+    return (
+      <div className="app-status">
+        {error ? (
+          <>
+            <strong>Couldn&rsquo;t load the cards.</strong>
+            <span>Check your connection and reload the page.</span>
+          </>
+        ) : (
+          'Loading cards…'
+        )}
+      </div>
+    );
   }
 
   return (
     <>
+      {error && (
+        <div className="sync-error" role="alert">
+          Couldn&rsquo;t reach the shared database — recent changes may not be saved.
+        </div>
+      )}
+
       {doctor ? (
         // key gives each doctor (and each "open this card" link) a fresh page
         <DoctorPage
@@ -50,7 +69,7 @@ export default function App() {
           doctor={doctor}
           doctors={doctors}
           initialOpenId={route.caseId}
-          onUpdate={(fn) => updateDoctor(doctor.id, fn)}
+          onUpdate={(fn) => saveDoctor(fn(doctor))}
           onDelete={() => deleteDoctor(doctor.id)}
           onAddDoctor={() => setAddingDoctor(true)}
         />

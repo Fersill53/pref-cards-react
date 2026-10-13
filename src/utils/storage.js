@@ -12,7 +12,7 @@ const SEEDS = [
 ];
 
 // Fills in fields that didn't exist when the data was saved.
-function normalizeDoctor(doctor) {
+export function normalizeDoctor(doctor) {
   return {
     subtitle: DEFAULT_SUBTITLE,
     accent: 'blue',
