@@ -2,11 +2,19 @@ import { useState } from 'react';
 import Modal from './Modal.jsx';
 import { DEFAULT_SUBTITLE } from '../data/factories.js';
 
+// Each value has a matching [data-accent='…'] rule in index.css.
 const ACCENTS = [
   ['blue', 'Blue'],
+  ['indigo', 'Indigo'],
   ['purple', 'Purple'],
-  ['teal', 'Teal'],
+  ['magenta', 'Magenta'],
+  ['pink', 'Pink'],
+  ['orange', 'Orange'],
+  ['lime', 'Lime'],
   ['green', 'Green'],
+  ['mint', 'Mint'],
+  ['teal', 'Teal'],
+  ['silver', 'Silver'],
 ];
 
 // doctor is null when adding a new one.
@@ -76,16 +84,26 @@ export default function DoctorEditor({ doctor, doctors, onSave, onDelete, onClos
           <span>Subtitle</span>
           <input type="text" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} />
         </label>
-        <label className="field">
-          <span>Accent colour</span>
-          <select value={accent} onChange={(e) => setAccent(e.target.value)}>
+        <div className="field">
+          <span>
+            Accent colour — {ACCENTS.find(([value]) => value === accent)?.[1] ?? accent}
+          </span>
+          <div className="swatches" role="radiogroup" aria-label="Accent colour">
             {ACCENTS.map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={accent === value}
+                aria-label={label}
+                title={label}
+                data-accent={value}
+                className={accent === value ? 'swatch selected' : 'swatch'}
+                onClick={() => setAccent(value)}
+              />
             ))}
-          </select>
-        </label>
+          </div>
+        </div>
         {isNew && (
           <label className="field">
             <span>Start from</span>
