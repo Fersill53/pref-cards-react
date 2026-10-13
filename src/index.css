@@ -262,6 +262,7 @@ main {
 .tag-other   { background: rgba(245,166,35,0.12); color: var(--warn); }
 .tag-purple  { background: rgba(167,139,250,0.15); color: var(--purple); }
 .tag-teal    { background: rgba(56,189,248,0.12); color: var(--teal); }
+.tag-red     { background: rgba(224,92,92,0.14); color: var(--danger); }
 
 .draft-badge {
   font-family: var(--mono);

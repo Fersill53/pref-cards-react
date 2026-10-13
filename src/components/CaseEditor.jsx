@@ -31,6 +31,7 @@ const TAG_COLORS = [
   ['other', 'Amber'],
   ['purple', 'Purple'],
   ['teal', 'Teal'],
+  ['red', 'Red'],
 ];
 
 function PillsEditor({ pills, onChange }) {

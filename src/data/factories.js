@@ -6,7 +6,7 @@ import { uid } from '../utils/id.js';
 //            accent: 'blue' | 'purple' | 'teal' | 'green'
 // note     { id, label, content, warn }
 // case     { id, name, tag: { label, kind }, draft, keywords, intro, sections: section[] }
-//            tag.kind: 'spine' (blue) | 'cervical' (green) | 'other' (amber) | 'purple' | 'teal'
+//            tag.kind: 'spine' (blue) | 'cervical' (green) | 'other' (amber) | 'purple' | 'teal' | 'red'
 // section  { id, label, type, content, pills: pill[], columns: column[], headers: string[], rows: row[] }
 //            type 'note' | 'warn' | 'danger' | 'info' use content
 //            type 'pills' uses pills, 'twoCol' uses columns, 'table' uses headers + rows
