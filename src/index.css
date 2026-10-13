@@ -1003,3 +1003,30 @@ select option {
   text-align: center;
   padding: 8px 16px;
 }
+
+/* PHONE / INSTALLED APP */
+html {
+  background: var(--bg);
+  -webkit-tap-highlight-color: transparent;
+}
+/* Keep content clear of the notch and the home bar when installed on a phone. */
+body { padding-bottom: env(safe-area-inset-bottom); }
+header { padding-top: calc(16px + env(safe-area-inset-top)); }
+.hero-inner { padding-top: calc(56px + env(safe-area-inset-top)); }
+.modal-backdrop {
+  padding-top: calc(40px + env(safe-area-inset-top));
+  padding-bottom: calc(40px + env(safe-area-inset-bottom));
+}
+@media (max-width: 600px) {
+  .hero-inner { padding-top: calc(36px + env(safe-area-inset-top)); }
+  .modal-backdrop {
+    padding-top: calc(12px + env(safe-area-inset-top));
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+}
+/* iPhone zooms the page when a focused field's text is under 16px. */
+@media (pointer: coarse) {
+  input[type='text'],
+  select,
+  textarea { font-size: 16px !important; }
+}

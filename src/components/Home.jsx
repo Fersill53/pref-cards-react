@@ -87,7 +87,7 @@ export default function Home({ doctors, onAddDoctor }) {
               type="text"
               autoFocus
               autoComplete="off"
-              placeholder="Search every surgeon — try “vicryl”, “C-arm” or “TLIF”…"
+              placeholder="Search all cards — vicryl, C-arm, TLIF…"
               aria-label="Search all cards"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
