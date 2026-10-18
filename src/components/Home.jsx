@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { doctorPath, navigate } from '../utils/route.js';
 import { buildSearchText, matchedSection } from '../utils/search.js';
+import { formatWhen } from '../utils/history.js';
 
 const MAX_RESULTS = 30;
 
@@ -44,7 +45,7 @@ function CaseLink({ doctor, c, detail }) {
   );
 }
 
-export default function Home({ doctors, onAddDoctor }) {
+export default function Home({ doctors, deletedDoctors, onAddDoctor, onRestoreDeleted }) {
   const [query, setQuery] = useState('');
 
   // Every case from every doctor, with its searchable text.
@@ -185,6 +186,35 @@ export default function Home({ doctors, onAddDoctor }) {
                 </button>
               </div>
             </section>
+
+            {deletedDoctors.length > 0 && (
+              <section>
+                <h2 className="home-heading">Recently deleted</h2>
+                <div className="result-list">
+                  {deletedDoctors.map((entry) => (
+                    <div key={entry.id} className="result-row trash-row">
+                      <span className="result-main">
+                        <span className="case-name">{entry.doctor.name}</span>
+                        <span className="result-detail">
+                          {plural(entry.doctor.cases.length, 'case')} · deleted{' '}
+                          {formatWhen(entry.deletedAt)}
+                        </span>
+                      </span>
+                      <button
+                        type="button"
+                        className="btn btn-sm"
+                        onClick={() => onRestoreDeleted(entry)}
+                      >
+                        Restore
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <p className="format-hint trash-hint">
+                  Deleted surgeons are kept here for 30 days.
+                </p>
+              </section>
+            )}
 
             {drafts.length > 0 && (
               <section>

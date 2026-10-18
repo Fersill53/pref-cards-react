@@ -7,6 +7,15 @@ service cloud.firestore {
   match /databases/{database}/documents {
     match /doctors/{doctorId} {
       allow read, write: if true;
+
+      // Earlier versions of this doctor, for history and restore.
+      match /versions/{versionId} {
+        allow read, write: if true;
+      }
+    }
+    // Deleted doctors, kept for 30 days so they can be restored.
+    match /deletedDoctors/{doctorId} {
+      allow read, write: if true;
     }
     match /meta/{docId} {
       allow read, write: if true;

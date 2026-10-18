@@ -5,18 +5,22 @@ import CaseCard from './CaseCard.jsx';
 import CaseEditor from './CaseEditor.jsx';
 import NotesEditor from './NotesEditor.jsx';
 import DoctorEditor from './DoctorEditor.jsx';
+import HistoryDialog from './HistoryDialog.jsx';
 import { newCase } from '../data/factories.js';
 import { doctorPath, navigate, pickListPath } from '../utils/route.js';
 import { buildSearchText } from '../utils/search.js';
 
-// One doctor's cards. onUpdate(fn) replaces this doctor with fn(doctor).
+// One doctor's cards. onUpdate(fn, message) replaces this doctor with fn(doctor);
+// message describes the change for the Undo bar.
 export default function DoctorPage({
   doctor,
   doctors,
   initialOpenId,
   onUpdate,
   onDelete,
-  onAddDoctor,
+  historySupported,
+  listVersions,
+  onRestoreVersion,
 }) {
   const [query, setQuery] = useState('');
   // Only one card is open at a time: its body overlays the cards below it.
@@ -72,34 +76,42 @@ export default function DoctorPage({
   }
 
   function saveCase(saved) {
-    onUpdate((d) => ({
-      ...d,
-      cases: d.cases.some((c) => c.id === saved.id)
-        ? d.cases.map((c) => (c.id === saved.id ? saved : c))
-        : [...d.cases, saved],
-    }));
+    const isNew = !doctor.cases.some((c) => c.id === saved.id);
+    onUpdate(
+      (d) => ({
+        ...d,
+        cases: isNew ? [...d.cases, saved] : d.cases.map((c) => (c.id === saved.id ? saved : c)),
+      }),
+      `${isNew ? 'Added' : 'Saved'} “${saved.name}”`
+    );
     setEditing(null);
   }
 
   function deleteCase(target) {
     if (!window.confirm(`Delete "${target.name}" from ${doctor.name}'s cards?`)) return;
-    onUpdate((d) => ({ ...d, cases: d.cases.filter((c) => c.id !== target.id) }));
+    onUpdate(
+      (d) => ({ ...d, cases: d.cases.filter((c) => c.id !== target.id) }),
+      `Deleted “${target.name}”`
+    );
     setOpenId(null);
     setEditing(null);
   }
 
   function saveNotes(globalNotes) {
-    onUpdate((d) => ({ ...d, globalNotes }));
+    onUpdate((d) => ({ ...d, globalNotes }), 'Saved global preferences');
     setEditing(null);
   }
 
   function saveDoctor({ copyFromId, ...fields }) {
-    onUpdate((d) => ({ ...d, ...fields }));
+    onUpdate((d) => ({ ...d, ...fields }), `Saved ${fields.name}`);
     setEditing(null);
   }
 
   function deleteDoctor() {
-    const message = `Delete ${doctor.name} and all ${doctor.cases.length} of their cards? This can't be undone.`;
+    const recovery = historySupported
+      ? 'You can restore them from Recently deleted on the home page for 30 days.'
+      : 'You can undo this right after.';
+    const message = `Delete ${doctor.name} and all ${doctor.cases.length} of their cards? ${recovery}`;
     if (window.confirm(message)) onDelete();
   }
 
@@ -124,7 +136,7 @@ export default function DoctorPage({
         onQueryChange={handleSearch}
         onSelectDoctor={(id) => navigate(doctorPath(id))}
         onEditDoctor={() => setEditing({ type: 'doctor' })}
-        onAddDoctor={onAddDoctor}
+        onHistory={listVersions ? () => setEditing({ type: 'history' }) : null}
       />
       <GlobalNotes notes={doctor.globalNotes} onEdit={() => setEditing({ type: 'notes' })} />
       {showLegend && (
@@ -188,6 +200,18 @@ export default function DoctorPage({
           doctors={doctors}
           onSave={saveDoctor}
           onDelete={deleteDoctor}
+          onClose={() => setEditing(null)}
+        />
+      )}
+      {editing?.type === 'history' && (
+        <HistoryDialog
+          doctor={doctor}
+          listVersions={listVersions}
+          onRestore={(version) => {
+            setEditing(null);
+            setOpenId(null);
+            onRestoreVersion(version);
+          }}
           onClose={() => setEditing(null)}
         />
       )}

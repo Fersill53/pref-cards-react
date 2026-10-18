@@ -9,7 +9,7 @@ export default function Header({
   onQueryChange,
   onSelectDoctor,
   onEditDoctor,
-  onAddDoctor,
+  onHistory,
 }) {
   return (
     <header>
@@ -33,9 +33,11 @@ export default function Header({
           <button type="button" className="btn btn-sm" onClick={onEditDoctor}>
             Edit
           </button>
-          <button type="button" className="btn btn-sm" onClick={onAddDoctor}>
-            + Doctor
-          </button>
+          {onHistory && (
+            <button type="button" className="btn btn-sm" onClick={onHistory}>
+              History
+            </button>
+          )}
         </div>
         <p>
           {subtitle} · {caseCount} {caseCount === 1 ? 'case' : 'cases'}
