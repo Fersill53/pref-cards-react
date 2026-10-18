@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Modal from './Modal.jsx';
 import TableEditor from './TableEditor.jsx';
+import { canPick, inPickList } from '../utils/pickList.js';
 import { newColumn, newPill, newSection } from '../data/factories.js';
 import { moveItem } from '../utils/list.js';
 
@@ -336,6 +337,16 @@ export default function CaseEditor({ initial, isNew, onSave, onDelete, onClose }
               rows={section.rows}
               onChange={(fields) => patchSection(section.id, fields)}
             />
+          )}
+          {canPick(section) && (
+            <label className="check pick-toggle">
+              <input
+                type="checkbox"
+                checked={inPickList(section)}
+                onChange={(e) => patchSection(section.id, { pickList: e.target.checked })}
+              />
+              Include in pick list
+            </label>
           )}
           {TEXT_TYPES.includes(section.type) && (
             <textarea

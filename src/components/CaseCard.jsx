@@ -1,4 +1,5 @@
 import RichText from './RichText.jsx';
+import { pickListCount } from '../utils/pickList.js';
 
 const BLOCK_CLASS = {
   note: 'note-block',
@@ -83,8 +84,9 @@ function SectionContent({ section }) {
   }
 }
 
-export default function CaseCard({ data, open, onToggle, onEdit }) {
+export default function CaseCard({ data, open, onToggle, onEdit, pickListHref }) {
   const { name, tag, draft, intro, sections } = data;
+  const pickCount = open ? pickListCount(data) : 0;
 
   function handleKeyDown(e) {
     if (e.target !== e.currentTarget) return;
@@ -129,6 +131,12 @@ export default function CaseCard({ data, open, onToggle, onEdit }) {
       </div>
       {open && (
         <div className="case-body">
+          {pickCount > 0 && (
+            <a className="pick-link" href={pickListHref}>
+              <span>☑ Pick list</span>
+              <span className="pick-link-count">{pickCount} items →</span>
+            </a>
+          )}
           {intro && (
             <div className="note-block small intro">
               <RichText text={intro} />

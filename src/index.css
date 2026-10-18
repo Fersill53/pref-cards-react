@@ -1031,3 +1031,178 @@ header { padding-top: calc(16px + env(safe-area-inset-top)); }
   select,
   textarea { font-size: 16px !important; }
 }
+
+/* PICK LIST */
+.pick-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 9px 12px;
+  border: 1px solid rgba(var(--accent-rgb),0.4);
+  border-radius: 8px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.pick-link:hover { border-color: var(--accent); box-shadow: 0 0 14px rgba(var(--accent-rgb),0.25); }
+.pick-link-count { font-weight: 400; }
+.pick-toggle { margin-top: 10px; }
+
+.pick-header {
+  display: block;
+  padding-bottom: 12px;
+}
+.pick-header-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pick-header-row .btn { text-decoration: none; flex-shrink: 0; }
+.pick-title { flex: 1; min-width: 0; }
+.pick-case {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.3;
+}
+.pick-doctor {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  margin-top: 2px;
+}
+.pick-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.pick-progress {
+  flex: 1;
+  min-width: 120px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.pick-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, rgba(var(--accent-rgb),0.6), var(--accent));
+  transition: width 0.25s;
+}
+.pick-count {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-mid);
+  white-space: nowrap;
+}
+.pick-count.complete { color: var(--green); font-weight: 600; }
+.pick-hide { margin: 0; white-space: nowrap; }
+
+.pick-main {
+  max-width: 760px;
+  padding-bottom: 48px;
+}
+.pick-group { margin-bottom: 26px; }
+.pick-group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.pick-dot { width: 9px; height: 9px; border-radius: 2px; background: var(--text-dim); }
+.pick-group.open .pick-dot { background: var(--green); }
+.pick-group.hold .pick-dot { background: var(--warn); }
+.pick-group.open .pick-group-title { color: var(--green); }
+.pick-group.hold .pick-group-title { color: var(--warn); }
+.pick-group-count {
+  font-weight: 400;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0 7px;
+  font-size: 11px;
+}
+.pick-section { margin-bottom: 14px; }
+.pick-items {
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.pick-items li + li { border-top: 1px solid var(--border); }
+.pick-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+.pick-item:hover { background: var(--surface2); }
+.pick-item input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.pick-box {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+.pick-item input:focus-visible + .pick-box { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pick-item.done .pick-box {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.pick-item.done .pick-box::after {
+  content: '';
+  width: 6px;
+  height: 11px;
+  border: solid #0b1220;
+  border-width: 0 2.5px 2.5px 0;
+  transform: translateY(-1px) rotate(45deg);
+}
+.pick-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.pick-name { font-size: 14px; color: var(--text); }
+.pick-detail { font-size: 12px; color: var(--text-dim); margin-top: 1px; }
+.pick-item.done .pick-name {
+  color: var(--text-dim);
+  text-decoration: line-through;
+}
+.pick-qty {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-mid);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  flex-shrink: 0;
+}

@@ -4,12 +4,17 @@ import { useEffect, useState } from 'react';
 //   #/                          home
 //   #/doctor/<id>               one doctor's cards
 //   #/doctor/<id>/<caseId>      the same, with that card opened
+//   #/doctor/<id>/<caseId>/pick that card's pick list
 export const homePath = '#/';
 export const doctorPath = (doctorId, caseId) =>
   caseId ? `#/doctor/${doctorId}/${caseId}` : `#/doctor/${doctorId}`;
+export const pickListPath = (doctorId, caseId) => `#/doctor/${doctorId}/${caseId}/pick`;
 
 function parse(hash) {
-  const [section, doctorId, caseId] = hash.replace(/^#\/?/, '').split('/');
+  const [section, doctorId, caseId, mode] = hash.replace(/^#\/?/, '').split('/');
+  if (section === 'doctor' && doctorId && caseId && mode === 'pick') {
+    return { view: 'pick', doctorId, caseId };
+  }
   if (section === 'doctor' && doctorId) {
     return { view: 'doctor', doctorId, caseId: caseId ?? null };
   }

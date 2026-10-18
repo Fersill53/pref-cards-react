@@ -7,7 +7,8 @@ import { uid } from '../utils/id.js';
 // note     { id, label, content, warn }
 // case     { id, name, tag: { label, kind }, draft, keywords, intro, sections: section[] }
 //            tag.kind: 'spine' (blue) | 'cervical' (green) | 'other' (amber) | 'purple' | 'teal' | 'red'
-// section  { id, label, type, content, pills: pill[], columns: column[], headers: string[], rows: row[] }
+// section  { id, label, type, content, pills: pill[], columns: column[], headers: string[], rows: row[],
+//            pickList? }   pickList: true/false once set in the editor; unset = guessed from the title
 //            type 'note' | 'warn' | 'danger' | 'info' use content
 //            type 'pills' uses pills, 'twoCol' uses columns, 'table' uses headers + rows
 // pill     { id, text, variant }   variant: '' | 'accent' | 'green' | 'teal' | 'warn' | 'danger'

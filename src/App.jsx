@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Home from './components/Home.jsx';
 import DoctorPage from './components/DoctorPage.jsx';
 import DoctorEditor from './components/DoctorEditor.jsx';
+import PickListPage from './components/PickListPage.jsx';
 import { DEFAULT_SUBTITLE, cloneWithNewIds, newDoctor } from './data/factories.js';
 import { useDoctors } from './data/useDoctors.js';
 import { doctorPath, homePath, navigate, useRoute } from './utils/route.js';
@@ -13,7 +14,9 @@ export default function App() {
 
   // A link to a doctor that no longer exists falls back to the home page.
   const doctor =
-    route.view === 'doctor' ? doctors.find((d) => d.id === route.doctorId) ?? null : null;
+    route.view === 'home' ? null : doctors.find((d) => d.id === route.doctorId) ?? null;
+  const pickCase =
+    route.view === 'pick' ? doctor?.cases.find((c) => c.id === route.caseId) ?? null : null;
 
   useEffect(() => {
     document.title = doctor ? `${doctor.name} — ${doctor.subtitle}` : DEFAULT_SUBTITLE;
@@ -62,7 +65,9 @@ export default function App() {
         </div>
       )}
 
-      {doctor ? (
+      {pickCase ? (
+        <PickListPage doctor={doctor} c={pickCase} />
+      ) : doctor ? (
         // key gives each doctor (and each "open this card" link) a fresh page
         <DoctorPage
           key={`${doctor.id}/${route.caseId ?? ''}`}

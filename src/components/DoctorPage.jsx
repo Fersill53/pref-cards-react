@@ -6,7 +6,7 @@ import CaseEditor from './CaseEditor.jsx';
 import NotesEditor from './NotesEditor.jsx';
 import DoctorEditor from './DoctorEditor.jsx';
 import { newCase } from '../data/factories.js';
-import { doctorPath, navigate } from '../utils/route.js';
+import { doctorPath, navigate, pickListPath } from '../utils/route.js';
 import { buildSearchText } from '../utils/search.js';
 
 // One doctor's cards. onUpdate(fn) replaces this doctor with fn(doctor).
@@ -151,6 +151,7 @@ export default function DoctorPage({
               open={openId === c.id}
               onToggle={() => toggle(c.id)}
               onEdit={() => setEditing({ type: 'case', caseId: c.id })}
+              pickListHref={pickListPath(doctor.id, c.id)}
             />
           ))}
           {!q && (
